@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ОБЛБЫТГАЗ: ВЗЫСКАНИЕ — Панель управления</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Space Grotesk -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Helvetica Neue', 'Arial', 'sans-serif'],
+              display: ['Helvetica Neue', 'Arial', 'sans-serif'],
+              mono: ['JetBrains Mono', 'monospace'],
+            },
+            colors: {
+              brand: {
+                50: '#eff6ff',
+                100: '#dbeafe',
+                200: '#bfdbfe',
+                500: '#1e3a8a', // Geometric primary blue
+                600: '#1e40af', // Darker blue
+                700: '#172554', // Deepest blue
+                800: '#1e3a8a',
+                900: '#0f172a',
+              },
+              accent: {
+                orange: '#f97316',
+                purple: '#8b5cf6',
+                emerald: '#22c55e', // Target accent green
+                rose: '#ef4444', // Target accent red
+              }
+            },
+            borderRadius: {
+              'xl': '8px',  // Map xl to 8px to match geometric radius
+              'lg': '6px',  // Map lg to 6px
+              'md': '4px',  // Map md to 4px
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+        background-color: #f8fafc;
+      }
+      .font-display {
+        font-family: 'Helvetica Neue', Arial, sans-serif;
+      }
+      .font-mono {
+        font-family: 'JetBrains Mono', monospace;
+      }
+      /* Custom thin scrollbar */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f5f9;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen flex flex-col text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-800">
+
+    <!-- FIXED TOP HEADER -->
+    <header id="app-header" class="sticky top-0 z-40 bg-brand-500 text-white shadow-sm border-b border-brand-600">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        
+        <!-- Logo / Title -->
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="window.appRouter.navigate('dashboard')">
+          <div class="bg-white/10 p-2 rounded-lg border border-white/20 shadow-inner flex items-center justify-center">
+            <!-- Flame & Scales Combined SVG Icon -->
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.828 10.172a4 4 0 105.656 5.656" />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-extrabold tracking-tight font-display flex items-center space-x-2">
+              <span>ОБЛБЫТГАЗ</span>
+              <span class="text-white text-[10px] px-2 py-0.5 bg-black/20 border border-white/10 rounded font-bold">ВЗЫСКАНИЕ</span>
+            </h1>
+            <p class="text-[10px] text-brand-100/70 font-medium uppercase tracking-wider">Судебный & Досудебный реестр</p>
+          </div>
+        </div>
+
+        <!-- Connection Badge & Export Button -->
+        <div class="flex items-center space-x-3">
+          <div id="db-status-badge" class="flex items-center space-x-1.5 px-3 py-1 bg-black/10 border border-white/10 rounded-full text-xs font-semibold text-white/80">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse" id="db-status-dot"></span>
+            <span id="db-status-text">Инициализация...</span>
+          </div>
+          
+          <button onclick="window.showExportPanel()" class="bg-white/10 hover:bg-white/15 text-white px-3 h-9 rounded-md border border-white/25 text-xs font-bold transition flex items-center space-x-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Экспорт файлов</span>
+          </button>
+          
+          <button onclick="window.showAddDebtorModal()" class="bg-white hover:bg-slate-50 text-brand-500 px-4 h-9 rounded-md font-bold text-xs border border-white/20 transition flex items-center space-x-1.5 shadow-sm">
+            <svg class="w-4.5 h-4.5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Добавить должника</span>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- OFFLINE DEMO MODE BANNER -->
+    <div id="demo-banner" class="hidden bg-gradient-to-r from-blue-900 to-indigo-900 text-white py-2 px-4 shadow-inner text-center text-xs font-medium border-b border-indigo-700/50 flex justify-center items-center space-x-2">
+      <span class="bg-brand-500 text-[10px] uppercase font-bold px-1.5 py-0.5 rounded animate-pulse">ДЕМО-РЕЖИМ</span>
+      <span>Данные сохраняются локально. Для облачной синхронизации заполните <strong>firebaseConfig</strong> в начале файла <code>app.js</code>.</span>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+
+      <!-- ========================================= -->
+      <!-- SECTION 1: DASHBOARD (REESTR) -->
+      <!-- ========================================= -->
+      <section id="section-dashboard" class="space-y-6">
+        
+        <!-- Stat Cards Bento Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- Card 1: Total count -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Всего должников</p>
+              <h3 id="stat-total-count" class="text-3xl font-extrabold text-slate-900 mt-1 font-display">0</h3>
+              <p class="text-xs text-slate-500 mt-1">Организации и ИП в реестре</p>
+            </div>
+            <div class="bg-slate-100 p-3 rounded-lg text-slate-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            </div>
+          </div>
+
+          <!-- Card 2: Total Debt Amount -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Сумма требований</p>
+              <h3 id="stat-total-amount" class="text-2xl font-extrabold text-slate-900 mt-1 font-display">0 ₽</h3>
+              <p class="text-xs text-slate-500 mt-1">Общая дебиторская задолженность</p>
+            </div>
+            <div class="bg-brand-50 p-3 rounded-lg text-brand-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            </div>
+          </div>
+
+          <!-- Card 3: Expired Deadlines -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Просрочено ответов</p>
+              <h3 id="stat-expired-count" class="text-3xl font-extrabold text-rose-600 mt-1 font-display">0</h3>
+              <p class="text-xs text-rose-500 mt-1">Превышен лимит ожидания</p>
+            </div>
+            <div class="bg-rose-50 p-3 rounded-lg text-rose-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+          </div>
+
+          <!-- Card 4: Under Claims Process -->
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">На этапе претензии</p>
+              <h3 id="stat-claims-count" class="text-3xl font-extrabold text-amber-600 mt-1 font-display">0</h3>
+              <p class="text-xs text-slate-500 mt-1">Досудебное урегулирование</p>
+            </div>
+            <div class="bg-amber-50 p-3 rounded-lg text-amber-600">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Toolbar: Search, Filters, Stats -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+          
+          <!-- Search Block -->
+          <div class="relative w-full md:w-96">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-slate-400">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
+            <input type="text" id="search-input" placeholder="Поиск по названию или ИНН..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all font-medium">
+          </div>
+
+          <!-- Status Filters -->
+          <div class="flex flex-wrap gap-2 w-full md:w-auto items-center">
+            <span class="text-xs font-bold text-slate-400 uppercase mr-1">Статус:</span>
+            <button onclick="window.setFilter('all')" id="filter-btn-all" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition border border-slate-200 bg-brand-600 text-white shadow-sm">Все</button>
+            <button onclick="window.setFilter('Претензия')" id="filter-btn-claim" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">Претензия</button>
+            <button onclick="window.setFilter('Судебный спор')" id="filter-btn-court" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">Судебный спор</button>
+            <button onclick="window.setFilter('Исполнительное производство')" id="filter-btn-bailiff" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">Исполнители</button>
+            <button onclick="window.setFilter('Завершено')" id="filter-btn-done" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition border border-slate-200 bg-white text-slate-600 hover:bg-slate-50">Завершено</button>
+          </div>
+
+        </div>
+
+        <!-- Debtors Grid Wrapper -->
+        <div class="space-y-3">
+          <div class="flex justify-between items-center px-1">
+            <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Список должников</h4>
+            <span id="results-count" class="text-xs font-semibold text-slate-500 bg-slate-200 px-2 py-0.5 rounded">Найдено: 0</span>
+          </div>
+          
+          <div id="debtors-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Loading state indicator -->
+            <div class="col-span-full py-16 flex flex-col items-center justify-center space-y-4 bg-white rounded-xl border border-slate-200">
+              <svg class="w-12 h-12 text-brand-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p class="text-slate-500 font-semibold text-sm">Подключение к базе данных...</p>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================= -->
+      <!-- SECTION 2: DETAILED VIEW (SPA DOSSIER) -->
+      <!-- ========================================= -->
+      <section id="section-detail" class="hidden space-y-6">
+        
+        <!-- Back navigation row -->
+        <div class="flex flex-wrap justify-between items-center gap-4">
+          <button onclick="window.appRouter.navigate('dashboard')" class="inline-flex items-center space-x-2 text-sm font-bold text-brand-600 hover:text-brand-800 transition group">
+            <svg class="w-5 h-5 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Вернуться к общему реестру</span>
+          </button>
+          
+          <div class="flex items-center space-x-3">
+            <button onclick="window.deleteActiveDebtor()" class="inline-flex items-center space-x-1.5 text-xs font-bold text-rose-600 hover:text-rose-800 hover:bg-rose-50 border border-rose-200 hover:border-rose-300 rounded-lg px-3 py-1.5 transition active:scale-95">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              <span>Удалить карточку</span>
+            </button>
+            <div id="detail-badge-container" class="flex space-x-2">
+              <!-- Dynamic Badges -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Dossier Header & Quick Actions -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-6 md:p-8 bg-white text-slate-900 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 border-b border-slate-200">
+            
+            <div class="space-y-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold rounded" id="detail-type-badge">ООО</span>
+                <span class="text-xs text-slate-500 font-mono font-bold" id="detail-inn-lbl">ИНН: 5001098432</span>
+                <span class="text-xs text-slate-500 font-mono font-bold" id="detail-ogrn-lbl-header"></span>
+                <span class="text-xs text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded font-mono font-bold hidden" id="detail-il-header-container">ИЛ: <span id="detail-il-lbl-header">—</span></span>
+              </div>
+              <h2 id="detail-name" class="text-2xl md:text-3xl font-extrabold tracking-tight font-display text-slate-900">ООО «ЖилСервис-Балашиха»</h2>
+              <p id="detail-address" class="text-sm text-slate-500 max-w-2xl">143900, Московская обл, г Балашиха, ул Советская, д 15</p>
+            </div>
+
+          </div>
+
+          <!-- Technical Specs Grid -->
+          <div class="grid grid-cols-2 md:grid-cols-4 border-t border-slate-200 bg-slate-50 divide-x divide-slate-200 divide-y-0 text-slate-600">
+            <div class="p-4 flex flex-col justify-center">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Сумма долга</span>
+              <span id="detail-debt-lbl" class="text-xl font-black text-brand-500 font-mono mt-0.5">0 ₽</span>
+            </div>
+            <div class="p-4 flex flex-col justify-center">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">КПП</span>
+              <span id="detail-kpp-lbl" class="text-sm font-bold text-slate-700 font-mono mt-0.5">—</span>
+            </div>
+            <div class="p-4 flex flex-col justify-center">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">ОГРН</span>
+              <span id="detail-ogrn-lbl" class="text-sm font-bold text-slate-700 font-mono mt-0.5">—</span>
+            </div>
+            <div class="p-4 flex flex-col justify-center">
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Идентификатор</span>
+              <span id="detail-id-lbl" class="text-[11px] font-semibold text-slate-400 font-mono mt-1 select-all">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN DETAIL GRID (Timeline vs Action Area) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- LEFT: Timeline (7 cols) -->
+          <div class="lg:col-span-7 bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 class="text-lg font-bold text-slate-800">Хронология принудительного взыскания</h3>
+              </div>
+              <button onclick="window.showSelectStageTypeModal()" class="px-3.5 py-1.5 bg-brand-50 hover:bg-brand-100 border border-brand-200 text-brand-700 hover:text-brand-800 text-xs font-bold rounded-lg transition flex items-center space-x-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+                <span>Добавить этап</span>
+              </button>
+            </div>
+
+            <!-- Timeline Visual Tree -->
+            <div id="timeline-container" class="relative pl-6 border-l-2 border-slate-200 space-y-8 py-2 ml-3">
+              <!-- Chronology items loaded dynamically -->
+            </div>
+
+          </div>
+
+          <!-- RIGHT: Interactive Stage Editor (5 cols) -->
+          <div class="lg:col-span-5 space-y-6">
+            
+            <!-- STAGE ACTIVE CONTROL PANEL -->
+            <div id="stage-editor-card" class="bg-white p-6 rounded-xl border-2 border-slate-200 shadow-sm space-y-5 transition-all">
+              
+              <div class="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <h4 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Интерактивный этап</h4>
+                  <h3 id="stage-editor-title" class="text-base font-extrabold text-slate-900 mt-0.5">Выберите этап для работы</h3>
+                </div>
+                <!-- Dropdown select for stages -->
+                <div>
+                  <select id="stage-type-selector" onchange="window.changeEditorStageType(this.value)" class="p-2 border border-slate-300 rounded text-xs font-bold bg-white text-slate-700 focus:ring-2 focus:ring-brand-500">
+                    <option value="Претензия">1. Претензия</option>
+                    <option value="Судебный приказ">2. Судебный приказ</option>
+                    <option value="Отмена судебного приказа">3. Отмена приказа</option>
+                    <option value="Подача искового заявления">4. Подача иска</option>
+                    <option value="Вынесение решения">5. Вынесение решения</option>
+                    <option value="Апелляция">6. Апелляция</option>
+                    <option value="Результат апелляции">7. Результат апелляции</option>
+                    <option value="Направление ИЛ в ФССП">8. Направление ИЛ в ФССП</option>
+                    <option value="Возбуждение ИП">9. Возбуждение ИП</option>
+                    <option value="Частичная оплата долга">10. Частичная оплата</option>
+                    <option value="Жалоба на ФССП">11. Жалоба на ФССП</option>
+                    <option value="Окончание ИП">12. Окончание ИП</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Main Dynamic Form -->
+              <form id="dynamic-stage-form" class="space-y-4" onsubmit="event.preventDefault()">
+                <!-- Dynamic inputs container -->
+                <div id="dynamic-inputs-container" class="space-y-4">
+                  <!-- JS will dynamically populate inputs here -->
+                </div>
+
+                <!-- Always present optional Comment textarea -->
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">Комментарий (необязательно)</label>
+                  <textarea id="stage-comment" rows="3" placeholder="Введите дополнительные комментарии или сведения по этому этапу..." class="w-full p-2 border border-slate-300 rounded text-sm focus:ring-2 focus:ring-brand-500 font-medium"></textarea>
+                </div>
+
+                <!-- Stage-specific logic output area -->
+                <div id="stage-logic-output" class="space-y-3">
+                  <!-- Auto-calculated dates, alerts, or custom buttons -->
+                </div>
+
+                <!-- Form Controls -->
+                <div class="flex items-center gap-3 pt-2">
+                  <button type="button" onclick="window.saveDynamicStage()" class="flex-grow bg-brand-500 hover:bg-brand-600 active:scale-95 text-white font-bold py-3 px-4 rounded-lg text-xs tracking-wider uppercase transition shadow-md shadow-brand-500/20 flex items-center justify-center space-x-2">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                    <span id="save-stage-btn-text">Сохранить этап</span>
+                  </button>
+                  <button type="button" id="delete-stage-btn" onclick="window.deleteCurrentStage()" class="hidden bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold py-3 px-4 rounded-lg text-xs tracking-wider uppercase transition active:scale-95">
+                    Удалить
+                  </button>
+                </div>
+              </form>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-brand-900 border-t border-brand-800 text-slate-400 py-6 text-xs mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-2">
+          <span class="font-extrabold text-slate-200 tracking-wider">ОБЛБЫТГАЗ</span>
+          <span>&copy; 2026. Судебный департамент взыскания задолженности.</span>
+        </div>
+        <div class="flex space-x-4">
+          <a href="#" onclick="window.appRouter.navigate('dashboard')" class="hover:text-white transition">Панель должников</a>
+          <span class="text-slate-700">|</span>
+          <a href="#" onclick="window.showExportPanel()" class="hover:text-white transition">Руководство и интеграция</a>
+        </div>
+      </div>
+    </footer>
+
+    <!-- ========================================= -->
+    <!-- MODAL IL: INPUT IL DATA -->
+    <!-- ========================================= -->
+    <div id="modal-input-il" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+      <div class="bg-white rounded-xl shadow-2xl border border-slate-300 w-full max-w-md overflow-hidden transform scale-95 transition-all">
+        
+        <!-- Modal Title Header -->
+        <div class="bg-brand-900 text-white px-6 py-4 border-b border-brand-700 flex justify-between items-center">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-5.5 h-5.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="text-base font-extrabold font-display">Реквизиты исполнительного листа</h3>
+          </div>
+          <button onclick="window.closeILModal()" class="text-slate-400 hover:text-white font-bold transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Серия, номер и дата выдачи ИЛ:</label>
+            <input type="text" id="modal-il-input-field" placeholder="например: ФС №045677846 от 10.04.2026" class="w-full p-3 border border-slate-300 rounded-lg text-sm font-semibold focus:ring-2 focus:ring-brand-500 font-mono">
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed font-medium bg-slate-50 p-3 rounded-lg border border-slate-200">
+            Указанные реквизиты будут автоматически сохранены в карточке должника и подставлены в шаблон заявления судебным приставам.
+          </p>
+
+          <div class="flex space-x-3 pt-2">
+            <button type="button" onclick="window.closeILModal()" class="w-1/2 border border-slate-300 hover:bg-slate-50 text-slate-700 py-2.5 rounded-lg text-xs font-bold uppercase transition">
+              Отмена
+            </button>
+            <button type="button" onclick="window.submitILModal()" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg text-xs font-bold uppercase shadow transition font-semibold">
+              Скачать (.doc)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- MODAL 0: SELECT STAGE TYPE FOR ADDING -->
+    <!-- ========================================= -->
+    <div id="modal-select-stage-type" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+      <div class="bg-white rounded-xl shadow-2xl border border-slate-300 w-full max-w-md overflow-hidden transform scale-95 transition-all">
+        
+        <!-- Modal Title Header -->
+        <div class="bg-brand-900 text-white px-6 py-4 border-b border-brand-700 flex justify-between items-center">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-5.5 h-5.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h3 class="text-base font-extrabold font-display">Выбор нового этапа взыскания</h3>
+          </div>
+          <button onclick="window.closeSelectStageTypeModal()" class="text-slate-400 hover:text-white font-bold transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-2">Выберите тип нового этапа:</label>
+            <select id="modal-stage-type-select" class="w-full p-3 border border-slate-300 rounded-lg text-sm font-bold bg-white focus:ring-2 focus:ring-brand-500">
+              <option value="Претензия">1. Претензия (досудебное)</option>
+              <option value="Судебный приказ">2. Судебный приказ</option>
+              <option value="Отмена судебного приказа">3. Отмена судебного приказа</option>
+              <option value="Подача искового заявления">4. Подача искового заявления</option>
+              <option value="Вынесение решения">5. Вынесение решения суда</option>
+              <option value="Апелляция">6. Апелляционное обжалование</option>
+              <option value="Результат апелляции">7. Результат апелляции</option>
+              <option value="Направление ИЛ в ФССП">8. Направление ИЛ приставам</option>
+              <option value="Возбуждение ИП">9. Возбуждение ИП</option>
+              <option value="Частичная оплата долга">10. Частичная оплата долга</option>
+              <option value="Жалоба на ФССП">11. Жалоба на действия приставов</option>
+              <option value="Окончание ИП">12. Окончание ИП (архив/завершено)</option>
+            </select>
+          </div>
+
+          <p class="text-xs text-slate-400 leading-relaxed font-medium bg-slate-50 p-3 rounded-lg border border-slate-200">
+            После подтверждения, на правой панели («Интерактивный этап») откроется соответствующая форма. Заполните необходимые реквизиты и нажмите кнопку сохранения для добавления этапа в хронологию.
+          </p>
+
+          <div class="flex space-x-3 pt-2">
+            <button type="button" onclick="window.closeSelectStageTypeModal()" class="w-1/2 border border-slate-300 hover:bg-slate-50 text-slate-700 py-2.5 rounded-lg text-xs font-bold uppercase transition">
+              Отмена
+            </button>
+            <button type="button" onclick="window.confirmSelectStageType()" class="w-1/2 bg-brand-500 hover:bg-brand-600 text-white py-2.5 rounded-lg text-xs font-bold uppercase shadow transition">
+              Выбрать
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- MODAL 1: ADD DEBTOR MODAL -->
+    <!-- ========================================= -->
+    <div id="modal-add-debtor" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+      <div class="bg-white rounded-xl shadow-2xl border border-slate-300 w-full max-w-xl overflow-hidden transform scale-95 transition-all">
+        
+        <!-- Modal Title Header -->
+        <div class="bg-brand-900 text-white px-6 py-4 border-b border-brand-700 flex justify-between items-center">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-5.5 h-5.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <h3 class="text-base font-extrabold font-display">Новая учетная карточка должника</h3>
+          </div>
+          <button onclick="window.closeAddDebtorModal()" class="text-slate-400 hover:text-white font-bold transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <form id="add-debtor-form" class="p-6 space-y-4" onsubmit="window.submitDebtor(event)">
+          
+          <!-- INN Field (Trigger DaData on 10/12 chars) -->
+          <div>
+            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-1 flex items-center justify-between">
+              <span>ИНН Организации или ИП <span class="text-rose-500">*</span></span>
+              <span class="text-[10px] text-brand-600 font-semibold lowercase">автопоиск DaData включен</span>
+            </label>
+            <div class="relative">
+              <input type="text" id="add-inn" required maxlength="12" placeholder="Введите 10 или 12 цифр ИНН" class="w-full p-2.5 pl-3 pr-10 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:outline-none focus:ring-2 focus:ring-brand-500 transition-all">
+              <div id="dadata-loading-spinner" class="hidden absolute inset-y-0 right-3 flex items-center">
+                <svg class="w-5 h-5 text-brand-500 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+            </div>
+            <p id="dadata-feedback" class="text-xs font-semibold mt-1 hidden"></p>
+          </div>
+
+          <!-- Auto-populated Fields block -->
+          <div class="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
+            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span>Реквизиты юридического лица</span>
+              <span class="flex items-center text-slate-400 space-x-1 font-mono text-[9px]">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                <span>защищено от изменения</span>
+              </span>
+            </h4>
+            
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Краткое наименование</label>
+              <input type="text" id="add-name" readonly placeholder="Заполняется автоматически..." class="w-full p-2 border border-slate-200 bg-slate-100 rounded text-xs font-bold text-slate-600 focus:outline-none">
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">КПП</label>
+                <input type="text" id="add-kpp" readonly placeholder="КПП..." class="w-full p-2 border border-slate-200 bg-slate-100 rounded text-xs font-semibold text-slate-600 focus:outline-none">
+              </div>
+              <div>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">ОГРН</label>
+                <input type="text" id="add-ogrn" readonly placeholder="ОГРН..." class="w-full p-2 border border-slate-200 bg-slate-100 rounded text-xs font-semibold text-slate-600 focus:outline-none">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-[10px] font-bold text-slate-400 uppercase mb-0.5">Юридический адрес</label>
+              <textarea id="add-address" readonly rows="2" placeholder="Юр. адрес контрагента..." class="w-full p-2 border border-slate-200 bg-slate-100 rounded text-xs font-medium text-slate-600 focus:outline-none resize-none"></textarea>
+            </div>
+          </div>
+
+          <!-- Manual Debt Amount field -->
+          <div>
+            <label class="block text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-1">Сумма дебиторской задолженности (руб) <span class="text-rose-500">*</span></label>
+            <input type="number" id="add-amount" required step="0.01" min="0" placeholder="Укажите размер долга в рублях" class="w-full p-2.5 border border-slate-300 rounded-lg text-sm font-mono font-bold focus:ring-2 focus:ring-brand-500">
+          </div>
+
+          <!-- Form Buttons -->
+          <div class="flex space-x-3 pt-3 border-t border-slate-100">
+            <button type="button" onclick="window.closeAddDebtorModal()" class="w-1/2 border border-slate-300 hover:bg-slate-50 text-slate-700 py-3 rounded-lg text-xs font-bold tracking-wider uppercase transition">
+              Отмена
+            </button>
+            <button type="submit" class="w-1/2 bg-brand-600 hover:bg-brand-700 text-white py-3 rounded-lg text-xs font-bold tracking-wider uppercase shadow-md shadow-brand-600/10 transition">
+              Добавить в реестр
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- MODAL 1.5: DELETE DEBTOR CONFIRMATION -->
+    <!-- ========================================= -->
+    <div id="modal-delete-debtor" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+      <div class="bg-white rounded-xl shadow-2xl border border-slate-300 w-full max-w-md overflow-hidden transform scale-95 transition-all font-sans">
+        <div class="bg-rose-900 text-white px-6 py-4 border-b border-rose-700 flex justify-between items-center">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            <h3 class="text-sm font-extrabold font-display text-white uppercase tracking-wider">Удаление карточки</h3>
+          </div>
+          <button onclick="window.closeDeleteDebtorModal()" class="text-slate-400 hover:text-white font-bold transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+        <div class="p-6 space-y-4">
+          <p class="text-xs text-slate-700 leading-relaxed font-semibold">
+            Вы уверены, что хотите полностью удалить карточку должника <span id="delete-debtor-name" class="text-rose-600 font-extrabold font-mono">...</span>? Это действие сотрет всю историю этапов и платежей без возможности восстановления.
+          </p>
+          <div class="flex space-x-3 pt-2">
+            <button type="button" onclick="window.closeDeleteDebtorModal()" class="w-1/2 border border-slate-300 hover:bg-slate-50 text-slate-700 py-2 rounded text-xs font-bold uppercase transition">
+              Отмена
+            </button>
+            <button type="button" onclick="window.confirmDeleteDebtor()" class="w-1/2 bg-rose-600 hover:bg-rose-700 text-white py-2 rounded text-xs font-bold uppercase shadow transition">
+              Да, удалить
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================= -->
+    <!-- MODAL 2: EXPORT / CODE PREVIEW PANEL -->
+    <!-- ========================================= -->
+    <div id="modal-export" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 animate-fade-in overflow-y-auto">
+      <div class="bg-white rounded-xl shadow-2xl border border-slate-300 w-full max-w-4xl overflow-hidden my-8 transform scale-95 transition-all">
+        
+        <!-- Modal Title Header -->
+        <div class="bg-brand-900 text-white px-6 py-4 border-b border-brand-700 flex justify-between items-center">
+          <div class="flex items-center space-x-2.5">
+            <svg class="w-5.5 h-5.5 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 class="text-base font-extrabold font-display">Сборка и Деплой на GitHub Pages</h3>
+          </div>
+          <button onclick="window.closeExportPanel()" class="text-slate-400 hover:text-white font-bold transition">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
+
+        <div class="p-6 space-y-6">
+          <!-- Description -->
+          <div class="bg-brand-50 p-4 rounded-lg border border-brand-200 text-xs text-brand-900 leading-relaxed">
+            <h4 class="font-bold text-sm text-brand-800 mb-1">🚀 Как запустить систему на GitHub Pages:</h4>
+            <ol class="list-decimal list-inside space-y-1">
+              <li>Создайте новый репозиторий на GitHub (например, <code>oblbytgaz-crm</code>).</li>
+              <li>Скопируйте файлы <strong>index.html</strong> и <strong>app.js</strong> (коды предоставлены ниже) в этот репозиторий.</li>
+              <li>В начале файла <strong>app.js</strong> замените пустые строки в объекте <code>firebaseConfig</code> на ваши реальные ключи базы данных Firebase Firestore (их можно взять в консоли Firebase в настройках вашего веб-проекта).</li>
+              <li>Зайдите в настройки репозитория: <code>Settings &gt; Pages</code>, выберите ветку <code>main</code> и папку <code>/ (root)</code>, затем нажмите <strong>Save</strong>.</li>
+              <li>Готово! Через пару минут ваша защищенная CRM-система ведения должников будет доступна по адресу <code>https://ваше-имя.github.io/oblbytgaz-crm/</code>.</li>
+            </ol>
+          </div>
+
+          <!-- Code Files Tabs -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-200">
+              <div class="flex space-x-1">
+                <button id="tab-btn-html" onclick="window.switchExportTab('html')" class="px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 border-brand-500 text-brand-600">index.html (HTML5 и Tailwind)</button>
+                <button id="tab-btn-js" onclick="window.switchExportTab('js')" class="px-4 py-2 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300">app.js (Вся логика и БД)</button>
+              </div>
+              <button onclick="window.downloadReleaseFile()" class="mb-1 bg-brand-500 hover:bg-brand-600 text-white font-bold px-3 py-1.5 rounded text-xs transition flex items-center space-x-1 shadow">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                <span id="download-release-btn-lbl">Скачать этот файл</span>
+              </button>
+            </div>
+
+            <!-- HTML Tab Content -->
+            <div id="export-content-html" class="block">
+              <div class="relative bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-xs overflow-x-auto max-h-96 border border-slate-800">
+                <button onclick="window.copyToClipboard('html')" class="absolute top-3 right-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2 py-1 rounded text-[10px] transition font-bold font-sans">Копировать код</button>
+                <pre class="whitespace-pre overflow-auto" id="code-block-html">Код index.html загружается...</pre>
+              </div>
+            </div>
+
+            <!-- JS Tab Content -->
+            <div id="export-content-js" class="hidden">
+              <div class="relative bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-xs overflow-x-auto max-h-96 border border-slate-800">
+                <button onclick="window.copyToClipboard('js')" class="absolute top-3 right-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2 py-1 rounded text-[10px] transition font-bold font-sans">Копировать код</button>
+                <pre class="whitespace-pre overflow-auto" id="code-block-js">Код app.js загружается...</pre>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Close Button -->
+          <div class="flex justify-end pt-3 border-t border-slate-100">
+            <button onclick="window.closeExportPanel()" class="bg-brand-900 hover:bg-brand-800 text-white px-6 py-2 rounded-lg text-xs font-bold uppercase tracking-wide transition">
+              Закрыть панель
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN APP SCRIPT MODULE -->
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
